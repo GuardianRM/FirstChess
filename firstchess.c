@@ -1250,10 +1250,12 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
 		MakeNullMove(pos);
 		Score = -AlphaBeta( -beta, -beta + 1, depth-4, pos, info, FALSE);
 		TakeNullMove(pos);
-		if(info->stopped == TRUE) {
+*/
+		if(info->stopped == TRUE) 
+		{
 			return 0;
 		}
-
+/*
 		if (Score >= beta && abs(Score) < ISMATE) {
 			info->nullCut++;
 			return beta;
