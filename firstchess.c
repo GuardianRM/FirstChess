@@ -13,6 +13,7 @@
    * Utility                               *
    * Main program                          *
  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -700,7 +701,7 @@ int             max_moves = 40;
 Shamelessly cobbled start of a Winboard interface
 stolen from Jim Ablett's work on Vchess.
 
-"Il pense à sa punition méritée."
+"Il pense Ã  sa punition mÃ©ritÃ©e."
 -- dcorbit
 */
 MOVE            getmove(int side, MOVE * moveBuf)
