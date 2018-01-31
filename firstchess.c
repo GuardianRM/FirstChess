@@ -1131,17 +1131,21 @@ static void ClearForSearch(S_BOARD *pos, S_SEARCHINFO *info) {
 	info->fh = 0;
 	info->fhf = 0;
 }
+*/
 
 static int Quiescence(int alpha, int beta, S_BOARD *pos, S_SEARCHINFO *info) {
 
 	ASSERT(CheckBoard(pos));
 	ASSERT(beta>alpha);
-	if(( info->nodes & 2047 ) == 0) {
-		CheckUp(info);
+	
+	// Проверка информации по узлам
+	if(( info->nodes & 2047 ) == 0) 
+	{
+	CheckUp(info);
 	}
 
 	info->nodes++;
-
+/* 
 	if(IsRepetition(pos) || pos->fiftyMove >= 100) {
 		return 0;
 	}
@@ -1212,11 +1216,12 @@ static int AlphaBeta(int alpha, int beta, int depth, S_BOARD *pos, S_SEARCHINFO 
 		return Quiescence(alpha, beta, pos, info);
 		// return EvalPosition(pos);
 	}
-
-	if(( info->nodes & 2047 ) == 0) {
+*/
+	if(( info->nodes & 2047 ) == 0) 
+	{
 		CheckUp(info);
 	}
-
+/*
 	info->nodes++;
 
 	if((IsRepetition(pos) || pos->fiftyMove >= 100) && pos->ply) {
