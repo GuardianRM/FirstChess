@@ -14,11 +14,14 @@
    * Main program                          *
  */
 
+//base
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 
+
+// not base
 #include <iostream>
 #include <vector>
 #include <fstream>
@@ -986,7 +989,7 @@ int             main()
 /////////////////////////////////////////////////////////////////////////////////////
 
 // search.c
-extern void SearchPosition(S_BOARD *pos, S_SEARCHINFO *info);
+/* extern */ void SearchPosition(S_BOARD *pos, S_SEARCHINFO *info);
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
