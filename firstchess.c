@@ -19,6 +19,22 @@
 #include <string.h>
 #include <assert.h>
 
+#include <iostream>
+#include <vector>
+#include <fstream>
+#include <cmath>
+#include <ctime>
+#include <string>
+#include <cstdlib>
+#include <random>
+#include <thread>
+#include <cstdio>
+#include <ctime>
+#include <future>
+#include <thread>
+#include <iomanip>
+#include <algorithm>
+
 #define TIMEALLOC (55000)
 
 typedef enum mybool {
