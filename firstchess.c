@@ -960,3 +960,24 @@ int             main()
     }
     return 0;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////
+// search.c
+
+#include "stdio.h"
+#include "defs.h"
+
+
+int rootDepth;
+
+static void CheckUp(S_SEARCHINFO *info) 
+
+{
+	// .. check if time up, or interrupt from GUI
+	if(info->timeset == TRUE && GetTimeMs() > info->stoptime) {
+		info->stopped = TRUE;
+}
+
+
+
+
