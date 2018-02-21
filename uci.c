@@ -3,7 +3,8 @@
 #include <pthread.h>
 #include <time.h>
 
-bool Firstchess::uciHandler(std::string str) {
+bool Firstchess::uciHandler(std::string str) 
+{
 	std::vector<std::string> cmd = getStringArray(str);
 		if(cmd[0] == "isready") {
 			std::cout << "readyok" << std::endl;
