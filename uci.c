@@ -1,7 +1,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <time.h>
-#include "firstchess.c"
+#include "game.hpp"
 
 bool Game::uciHandler(std::string str)
 
