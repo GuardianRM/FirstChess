@@ -3,13 +3,13 @@
 #include <time.h>
 #include "firstchess.c"
 
-/*bool Game::uciHandler(std::string str)*/
+bool Game::uciHandler(std::string str)
 
-/*{*/
+{
 	std::vector<std::string> cmd = getStringArray(str);
 		if(cmd[0] == "isready") {
-			std::cout << "readyok" << std::endl	
-		} 
+		std::cout << "readyok" << std::endl	
+} 
 	
 	else if(cmd[0] == "position") {
 			gameHash.clear();
