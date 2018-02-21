@@ -1,31 +1,29 @@
-CXX           = gcc
-FLAGS         = -Wall -Wextra -static -pthread
-RELEASE_FLAGS = $(FLAGS) -O3 -DNDEBUG -flto
-DEBUG_FLAGS   = $(FLAGS) -g -gdwarf-2 -Wall -Wextra
+PREFIX = /usr/local
+BINDIR = $(PREFIX)/bin
 
-LINKER  = gcc
-LFLAGS  = -pthread
+CC = g++
+CFLAGS = -std=c++14 -m64 -Ofast -DNDEBUG -Wall -pedantic -flto -march=native
+FILES = main.o game.o killer.o hash.o uci.o preparation.o printer.o search.o gamethread.o gameservices.o movegenerator.o timer.o goback.o figurecell.o bitmove.o movearray.o bitboard.o  magic.o option.o constants.o score.o
+NAME = 1
 
-EXEC    = StartChess
-SRCDIR  = src
-OBJDIR  = obj
-BINDIR  = bin
+all: Firstchess.c $(FILES)
+	$(CC) $(CFLAGS) $(FILES) -o $(NAME)
 
-SOURCES  := $(wildcard $(SRCDIR)/*.c)
-INCLUDES := $(wildcard $(SRCDIR)/*.h)
-OBJECTS  := $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+strip:
+	strip $(NAME)
 
-$(BINDIR)/$(EXEC): $(OBJECTS)
-	@$(LINKER) -o $@ $(OBJECTS) $(LFLAGS)
+install:
+	make -j4 clean
+	make -j4 all
+	-mkdir -p -m 755 $(BINDIR)
+	-cp $(NAME) $(BINDIR)
+	-strip $(BINDIR)/$(NAME)
 
-$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.c
-	@$(CXX) $(FLAGS) -c $< -o $@
+uninstall:
+	rm -rf $(BINDIR)/$(NAME)
 
-release:
-	$(MAKE) FLAGS="$(RELEASE_FLAGS)"
-
-debug:
-	$(MAKE) FLAGS="$(DEBUG_FLAGS)" EXEC="$(EXEC)-debug"
+Firstchess.o: Firstchess.c
+	$(CC) $(CFLAGS) -c Firstchess.c
 
 clean:
-	-rm -f $(OBJECTS)
+	rm -rf *.o $(NAME)
