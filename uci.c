@@ -1,9 +1,10 @@
-#include "firstchess.c"
 #include <string.h>
 #include <pthread.h>
 #include <time.h>
+#include "game.hpp"
 
-bool Firstchess::uciHandler(std::string str) 
+bool Game::uciHandler(std::string str)
+
 {
 	std::vector<std::string> cmd = getStringArray(str);
 		if(cmd[0] == "isready") {
