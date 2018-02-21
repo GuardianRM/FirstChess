@@ -5,7 +5,7 @@
 
 /*bool Game::uciHandler(std::string str)*/
 
-{
+/*{*/
 	std::vector<std::string> cmd = getStringArray(str);
 		if(cmd[0] == "isready") {
 			std::cout << "readyok" << std::endl	
