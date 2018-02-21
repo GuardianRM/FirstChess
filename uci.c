@@ -1,15 +1,17 @@
 #include <string.h>
 #include <pthread.h>
 #include <time.h>
-#include "firstchess.hpp"
+#include "firstchess.c"
 
 /*bool Game::uciHandler(std::string str)*/
 
 {
 	std::vector<std::string> cmd = getStringArray(str);
 		if(cmd[0] == "isready") {
-			std::cout << "readyok" << std::endl;
-		} else if(cmd[0] == "position") {
+			std::cout << "readyok" << std::endl	
+		} 
+	
+	else if(cmd[0] == "position") {
 			gameHash.clear();
 			gameHash.resize(0);
 			hash_decrement = 0;
