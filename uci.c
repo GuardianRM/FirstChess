@@ -1,9 +1,9 @@
 #include <string.h>
 #include <pthread.h>
 #include <time.h>
-#include "game.hpp"
+#include "firstchess.hpp"
 
-bool Game::uciHandler(std::string str)
+/*bool Game::uciHandler(std::string str)*/
 
 {
 	std::vector<std::string> cmd = getStringArray(str);
