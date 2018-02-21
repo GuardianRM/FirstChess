@@ -3,230 +3,149 @@
 #include <pthread.h>
 #include <time.h>
 
-void uci_listen()
-{
-  int exit = 0;
+bool Game::uciHandler(std::string str) {
+	std::vector<std::string> cmd = getStringArray(str);
+		if(cmd[0] == "isready") {
+			std::cout << "readyok" << std::endl;
+		} else if(cmd[0] == "position") {
+			gameHash.clear();
+			gameHash.resize(0);
+			hash_decrement = 0;
+			if(cmd[1] == "startpos") {
+				game_board.setFen(game_board.startpos_fen);
+				hash_decrement = 0;
+				hashAge = 0;
+				if(cmd.size() > 3) {
+					if(cmd[2] == "moves") {
+						for(unsigned int i = 3; i < cmd.size(); ++i) {
+							move(cmd[i]);
+						}
+					}
+				}
+			} else if(cmd[1] == "fen") {
+				std::string fen;
+				unsigned int pos = 2;
 
-  GUI_Send("id name %s\n", ENGINE_NAME);
-  GUI_Send("id author %s\n", ENGINE_AUTHOR);
-  #ifdef HASHTABLE
-    GUI_Send("option name Hash type spin default %i min %i max %i\n", HASHTABLE_SIZE_DEFAULT, HASHTABLE_SIZE_MIN, HASHTABLE_SIZE_MAX);
-  #endif
-  GUI_Send("uciok\n");
+				for(unsigned int i = 2; i < 8; ++i) {
+					fen += cmd[i];
+					if(i != cmd.size() - 1) {
+						fen.push_back(' ');
+					}
+					++pos;
+				}
 
-  // board & search information
-  s_board *board = (s_board*) malloc(1*sizeof(s_board));
-  s_search_settings *settings = (s_search_settings*) malloc(1*sizeof(s_search_settings));
+				game_board.setFen(fen);
+				if(cmd.size() > pos) {
+					if(cmd[pos] == "moves") {
+						for(unsigned int i = pos + 1; i < cmd.size(); ++i) {
+							move(cmd[i]);
+						}
+					}
+				}
+			}
+		} else if(cmd[0] == "go") {
+			if(cmd[1] == "depth") {
+				max_depth = std::stoi(cmd[2]);
+			  goFixedDepth();
+			} else if(cmd[1] == "movetime") {
+				goFixedTime(std::stoll(cmd[2]), false);
+			} else if(cmd[1] == "infinite") {
+				max_depth = 99;
+				goFixedDepth();
+			} else {
+				wtime = 0, btime = 0;
+				winc = 0, binc = 0, movestogo = 0, movestogoEnable = false;
+				for(unsigned int i = 1; i < cmd.size(); ++i) {
+					if(cmd[i] == "wtime") {
+						wtime = std::stoll(cmd[i + 1]);
+					} else if(cmd[i] == "btime") {
+						btime = std::stoll(cmd[i + 1]);
+					} else if(cmd[i] == "winc") {
+						winc = std::stoll(cmd[i + 1]);
+					} else if(cmd[i] == "binc") {
+						binc = std::stoll(cmd[i + 1]);
+					} else if(cmd[i] == "movestogo") {
+						movestogoEnable = true;
+						movestogo = std::stoi(cmd[i+1]);
+					}
+				}
 
-  // search thread
-  pthread_t search_thread;
-  s_thread_data data;
-  data.board = board;
-  data.settings = settings;
+				goTournament();
+			}
+		} else if(cmd[0] == "posmoves") {
+			MoveArray moves;
+			game_board.bitBoardMoveGenerator(moves, stress);
 
-  set_fen(board, "startpos");
+			for(unsigned int i = 0; i < moves.count; ++i) {
+				std::cout << moves.moveArray[i].getMoveString();
+				std::cout << std::endl;
+			}
 
-  char message[4096];
-  while(!exit)
-  {
-    char *r = fgets(message, 4096, stdin);
-    if(r == NULL)
-    {
-      break;
-    }
+			std::cout << game_board.getEvaluate() / PAWN_EV.mg * 100 << std::endl;
+			std::cout << game_board.getFen() << std::endl;
 
-    char *part = message;
+			std::cout << "inCheck (WHITE) : " << game_board.inCheck(WHITE) << std::endl;
+			std::cout << "inCheck (BLACK) : " << game_board.inCheck(BLACK) << std::endl;
+			std::cout << "color_hash: " << game_board.getColorHash() << std::endl;
+		} else if(cmd[0] == "move") {
+			move(cmd[1]);
+		} else if(cmd[0] == "quit") {
+			return false;
+		} else if(cmd[0] == "uci") {
+			idPrint();
+			option.print();
+			std::cout << "uciok" << std::endl;
+		} else if(cmd[0] == "bench") {
+			std::cout << "Benchmarking (15 sec)..." << std::endl;
+			game_board.stress = 0;
+			double st = clock();
+			while((clock() - st) / CLOCKS_PER_SEC < 15) {
+				for(unsigned int i = 0; i < 10000000; ++i) {
+					game_board.bitBoardMoveGenerator(moveArray[0], game_board.stress);
+				}
+			}
+			std::cout << (int64_t)(game_board.stress / ((clock() - st) / CLOCKS_PER_SEC)) / 10000 << " scores" << std::endl;
+		} else if(cmd[0] == "goback") {
+			game_board.goBack();
+			--hash_decrement;
+		} else if(cmd[0] == "perft") {
+			int k;
+			k = std::stoi(cmd[1]);
+			for(int i = 1; i <= k; ++i) {
+				combinations = 0;
+				double st = clock();
+				uint64_t count = perft(i);
+				std::cout << "Depth: " << i << "; count: " << combinations;
+				std::cout << "; speed: " << (int64_t)((double)count / (((double)clock() - (double)st) / (double)CLOCKS_PER_SEC)) << std::endl;
+			}
+		} else if(cmd[0] == "setoption" && cmd[1] == "name") {
+			if(cmd[2] == "Clear" && cmd[3] == "Hash") {
+				clearCash();
+				std::cout << "info hashfull 0" << std::endl;
+			} else if(cmd[2] == "Hash" && cmd[3] == "value") {
+				int hash_size = std::stoi(cmd[4]);
 
-    while(part[0] != '\0')
-    {
-      if(strncmp(part, "quit", 4) == 0)
-      {
-        exit = 1;
-        break;
-      }
-      else if(strncmp(part, "isready", 7) == 0)
-      {
-        GUI_Send("readyok\n");
-        break;
-      }
-      else if(strncmp(part, "ucinewgame", 10) == 0)
-      {
-        hashtable_clear(hashtable);
-        set_fen(board, "startpos");
-        break;
-      }
-      else if(strncmp(part, "position", 8) == 0)
-      {
-        part += 9;
-        if(strncmp(part, "startpos", 8) == 0)
-        {
-          set_fen(board, "startpos");
-        }
-        else if(strncmp(part, "fen", 3) == 0)
-        {
-          part += 4;
-          set_fen(board, part);
-        }
-      }
-      else if(strncmp(part, "moves", 5) == 0)
-      {
-        //part += 6;
+				hash_size = std::min(hash_size, option.max_hash_size);
+				hash_size = std::max(hash_size, option.min_hash_size);
 
-        unsigned int i;
-        for(i = 0; i < strlen(part)-4; ++i)
-        {
-          if(part[i  ] < 'a' || 'h' < part[i  ]) {continue;}
-          if(part[i+1] < '1' || '8' < part[i+1]) {continue;}
-          if(part[i+2] < 'a' || 'h' < part[i+2]) {continue;}
-          if(part[i+3] < '1' || '8' < part[i+3]) {continue;}
+				setHashSize(hash_size);
+			}  else if(cmd[2] == "Move" && cmd[3] == "Overhead" && cmd[4] == "value") {
+				option.moveOverhead = std::stoi(cmd[5]);
+				option.moveOverhead = std::min(option.moveOverhead, option.maxMoveOverhead);
+				option.moveOverhead = std::max(option.moveOverhead, option.minMoveOverhead);
+			} else if(cmd[2] == "UCI_AnalyseMode" && cmd[3] == "value") {
+				if(cmd[4] == "true") {
+					option.UCI_AnalyseMode = true;
+				} else if(cmd[4] == "false") {
+					option.UCI_AnalyseMode = false;
+				}
+			}
+		}
 
-          move_make_ascii(board, &part[i]);
-        }
-      }
-      else if(strncmp(part, "display", 7) == 0)
-      {
-        display_board(board);
-        display_history(board);
-        print_moves(board);
-      }
-      else if(strncmp(part, "go", 2) == 0)
-      {
-        /*
-        if(pthread_kill(search_thread, 0))
-        {
-          pthread_cancel(search_thread);
-        }
-        */
+		return true;
+}
 
-        // arbitrary default values 1+0
-        settings->wtime = 60000;
-        settings->btime = 60000;
-        settings->winc = 0;
-        settings->binc = 0;
-        settings->movestogo = 20;
-        settings->depth = 0;
-        settings->movetime = 0;
-        // Not implemented yet
-        settings->nodes = 0;
-        settings->mate = 0;
-
-        // This is a bit ugly
-        while(part[1] != '\0')
-        {
-          if(strncmp(part, "infinite", 8) == 0)
-          {
-            settings->depth = MAX_DEPTH;
-            break;
-          }
-          else if(strncmp(part, "wtime", 5) == 0)
-          {
-            part += 6;
-            settings->wtime = atoi(part);
-          }
-          else if(strncmp(part, "btime", 5) == 0)
-          {
-            part += 6;
-            settings->btime = atoi(part);
-          }
-          else if(strncmp(part, "winc", 4) == 0)
-          {
-            part += 5;
-            settings->winc = atoi(part);
-          }
-          else if(strncmp(part, "binc", 4) == 0)
-          {
-            part += 5;
-            settings->binc = atoi(part);
-          }
-          else if(strncmp(part, "movestogo", 9) == 0)
-          {
-            part += 10;
-            settings->movestogo = atoi(part);
-          }
-          else if(strncmp(part, "depth", 5) == 0)
-          {
-            part += 6;
-            settings->depth = atoi(part);
-          }
-          else if(strncmp(part, "movetime", 8) == 0)
-          {
-            part += 9;
-            settings->movetime = atoi(part);
-          }
-
-          part++;
-        }
-
-        if(settings->movestogo == 1)
-        {
-          // Maintain a small period of buffer time for the search to end
-          settings->wtime -= 50;
-          settings->btime -= 50;
-        }
-
-        search_settings_set(*settings);
-
-        if(pthread_create(&search_thread, NULL, search_root, &data))
-        {
-          fprintf(stderr, "Error creating thread\n");
-        }
-      }
-      else if(strncmp(part, "stop", 4) == 0)
-      {
-        settings->time_max = 0;
-        search_settings_set(*settings);
-        pthread_join(search_thread, NULL);
-      }
-      else if(strncmp(part, "perft", 5) == 0)
-      {
-        part += 6;
-        uint64_t nodes = 0ULL;
-        int depth = atoi(part);
-
-        for(int d = 1; d <= depth; ++d)
-        {
-          clock_t start = clock();
-          nodes = perft_search(board, d);
-          clock_t end = clock();
-          clock_t time_taken = 1000*(end-start)/CLOCKS_PER_SEC;
-          printf("info depth %i nodes %" PRIu64 " time %i\n", d, nodes, (int)time_taken);
-        }
-        printf("nodes %" PRIu64 "\n", nodes);
-      }
-      else if(strncmp(part, "setoption", 9) == 0)
-      {
-        #ifdef HASHTABLE
-          if(strncmp(part, "setoption name Hash value", 25) == 0)
-          {
-            part += 26;
-            int size = atoi(part);
-
-            if(HASHTABLE_SIZE_MIN <= size && size <= HASHTABLE_SIZE_MAX)
-            {
-              while(size >= HASHTABLE_SIZE_MIN)
-              {
-                int r = hashtable_init(hashtable, size);
-
-                if(r != -1) {break;}
-
-                size = size>>1;
-              }
-
-              #ifndef NDEBUG
-                printf("Total size: %iMB\n", hashtable->size_bytes/1024/1024);
-                printf("Entry size: %" PRIu64 "B\n", sizeof(s_hashtable_entry));
-                printf("Max entries: %i\n", hashtable->max_entries);
-              #endif
-            }
-          }
-        #endif
-      }
-
-      part++;
-    }
-  }
-
-  free(board);
-  free(settings);
-  return;
+void Game::idPrint() {
+	std::cout << "id name StartChess_0.1" << std::endl;
+	std::cout << "id author " << std::endl;
 }
