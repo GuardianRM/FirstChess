@@ -20,8 +20,8 @@
 
 #define TIMEALLOC (55000)
 
-typedef enum mybool {
-false = 0, true = 1} mybool;
+/*typedef enum mybool {false = 0, true = 1} mybool;
+
 /*
    ****************************************************************************
    * Some definitions                                                         *
@@ -700,7 +700,7 @@ int             max_moves = 40;
 Shamelessly cobbled start of a Winboard interface
 stolen from Jim Ablett's work on Vchess.
 
-"Il pense à sa punition méritée."
+"Il pense Ã  sa punition mÃ©ritÃ©e."
 -- dcorbit
 */
 MOVE            getmove(int side, MOVE * moveBuf)
