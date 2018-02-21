@@ -3,7 +3,7 @@ BINDIR = $(PREFIX)/bin
 
 CC = g++
 CFLAGS = -std=c++14 -m64 -Ofast -DNDEBUG -Wall -pedantic -flto -march=native
-FILES = firstchess.o
+FILES = firstchess.o uci.o
 NAME = StartChess
 
 all: firstchess.c $(FILES)
@@ -24,6 +24,9 @@ uninstall:
 
 firstchess.o: firstchess.c
 	$(CC) $(CFLAGS) -c Firstchess.c
+
+uci.o: uci.c
+	$(CC) $(CFLAGS) -c uci.c
 
 clean:
 	rm -rf *.o $(NAME)
