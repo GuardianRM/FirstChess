@@ -20,7 +20,7 @@
 
 #define TIMEALLOC (55000)
 
-/*typedef enum mybool {false = 0, true = 1} mybool;
+/*typedef enum mybool {false = 0, true = 1} mybool; */
 
 /*
    ****************************************************************************
@@ -330,9 +330,9 @@ int             Gen(int current_side, MOVE * pBuf)
  */
 int             Eval()
 {
-    int             value_piece[6] =
+    int value_piece[6] =
     {VALUE_PAWN, VALUE_KNIGHT, VALUE_BISHOP, VALUE_ROOK, VALUE_QUEEN, VALUE_KING};
-    int             i,
+    int i,
                     score = 0;
     for (i = 0; i < 64; i++) {
         if (color[i] == WHITE)
