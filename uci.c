@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include <time.h>
 
-bool Game::uciHandler(std::string str) {
+bool Firstchess::uciHandler(std::string str) {
 	std::vector<std::string> cmd = getStringArray(str);
 		if(cmd[0] == "isready") {
 			std::cout << "readyok" << std::endl;
@@ -22,7 +22,9 @@ bool Game::uciHandler(std::string str) {
 						}
 					}
 				}
-			} else if(cmd[1] == "fen") {
+			} 
+			else if(cmd[1] == "fen") 
+			{
 				std::string fen;
 				unsigned int pos = 2;
 
